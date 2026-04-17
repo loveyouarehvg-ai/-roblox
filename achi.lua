@@ -1,3 +1,6 @@
+--// ACHI-ARES V5.5 (Final Tutorial Edition)
+--// 🫪🦛 BY อชิ | TARGET KILL & FLING REACH | ห้ามแก้ส่วนอื่น 🦛🫪
+
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
@@ -7,7 +10,10 @@ local CloseBtn = Instance.new("TextButton")
 local FlingToggle = Instance.new("TextButton")
 local AimToggle = Instance.new("TextButton")
 local AntiGrabToggle = Instance.new("TextButton")
-local ESPToggle = Instance.new("TextButton") -- เพิ่มปุ่ม ESP
+local ESPToggle = Instance.new("TextButton")
+local KillAutoToggle = Instance.new("TextButton")
+local ReachToggle = Instance.new("TextButton")
+local TargetInput = Instance.new("TextBox") -- ช่องเลือกคนที่จะฆ่า
 local StrengthInput = Instance.new("TextBox")
 local UIListLayout = Instance.new("UIListLayout")
 
@@ -25,12 +31,13 @@ local StarterGui = game:GetService("StarterGui")
 ScreenGui.Name = "AchiAresV5_5"
 ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 MainFrame.Position = UDim2.new(0.5, -100, 0.5, -150)
-MainFrame.Size = UDim2.new(0, 200, 0, 380) -- เพิ่มขนาดรองรับปุ่มใหม่
+MainFrame.Size = UDim2.new(0, 200, 0, 460) -- ปรับขนาดเพื่อรองรับช่อง Target
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Visible = false
@@ -41,13 +48,11 @@ UICorner.Parent = MainFrame
 UIStroke.Thickness = 3
 UIStroke.Parent = MainFrame
 
+-- ระบบเปิด/ปิดเมนู
 local function ToggleMenu()
     MainFrame.Visible = not MainFrame.Visible
-    if MainFrame.Visible then
-        UserInputService.MouseIconEnabled = true
-    else
-        UserInputService.MouseIconEnabled = false
-    end
+    AimToggle.Modal = MainFrame.Visible
+    UserInputService.MouseIconEnabled = MainFrame.Visible
 end
 
 -- ระบบสีรุ้ง
@@ -86,7 +91,9 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 local FlingEnabled = false
 local AimbotEnabled = false
 local AntiGrabEnabled = false
-local ESPEnabled = false -- ESP Toggle
+local ESPEnabled = false
+local KillAutoEnabled = false
+local ReachEnabled = false
 local MenuKey = Enum.KeyCode.K
 
 local function StyleButton(btn, text)
@@ -103,7 +110,18 @@ end
 StyleButton(FlingToggle, "Fling: OFF")
 StyleButton(AimToggle, "Aimbot: OFF")
 StyleButton(AntiGrabToggle, "Anti-Grab: OFF")
-StyleButton(ESPToggle, "ESP: OFF") -- ปุ่ม ESP
+StyleButton(ESPToggle, "ESP Vision: OFF")
+StyleButton(KillAutoToggle, "Kill Target: OFF")
+StyleButton(ReachToggle, "Fling Reach: OFF")
+
+TargetInput.Size = UDim2.new(0.9, 0, 0, 35)
+TargetInput.PlaceholderText = "Target Name..."
+TargetInput.Text = ""
+TargetInput.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TargetInput.TextColor3 = Color3.new(1, 1, 1)
+TargetInput.ZIndex = 3
+TargetInput.Parent = MainFrame
+Instance.new("UICorner", TargetInput).CornerRadius = UDim.new(0, 8)
 
 StrengthInput.Size = UDim2.new(0.9, 0, 0, 35)
 StrengthInput.PlaceholderText = "Fling Force..."
@@ -114,48 +132,64 @@ StrengthInput.ZIndex = 3
 StrengthInput.Parent = MainFrame
 Instance.new("UICorner", StrengthInput).CornerRadius = UDim.new(0, 8)
 
---// [NEW SECTION] ESP (มองทะลุชื่อ + ระยะทาง)
+--// [NEW SECTION] ADVANCED KILL & REACH (ห้ามแก้ส่วนอื่น)
+RunService.RenderStepped:Connect(function()
+    -- Fling Reach (จับไกล + สะบัดแรง)
+    if ReachEnabled and LocalPlayer.Character then
+        for _, tool in pairs(LocalPlayer.Character:GetChildren()) do
+            if tool:IsA("Tool") and tool:FindFirstChild("Handle") then
+                tool.Handle.Size = Vector3.new(40, 40, 40) -- จับกว้างและไกลขึ้น
+                tool.Handle.Transparency = 0.8
+                tool.Handle.CanCollide = false
+            end
+        end
+    end
+    
+    -- Target Kill (วาร์ปไปหาคนที่พิมพ์ชื่อไว้)
+    if KillAutoEnabled and TargetInput.Text ~= "" then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Name:lower():sub(1, #TargetInput.Text) == TargetInput.Text:lower() then
+                if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+                end
+            end
+        end
+    end
+end)
+
+--// [ESP LOGIC]
 local function CreateESP(Player)
-    local Billboard = Instance.new("BillboardGui")
-    local TextLabel = Instance.new("TextLabel")
-
-    Billboard.Name = "AchiESP"
-    Billboard.Size = UDim2.new(0, 200, 0, 50)
-    Billboard.Adornee = Player.Character:WaitForChild("Head")
-    Billboard.AlwaysOnTop = true
-    Billboard.ExtentsOffset = Vector3.new(0, 3, 0)
-    Billboard.Parent = Player.Character:WaitForChild("Head")
-
-    TextLabel.Parent = Billboard
-    TextLabel.BackgroundTransparency = 1
-    TextLabel.Size = UDim2.new(1, 0, 1, 0)
-    TextLabel.TextColor3 = Color3.new(1, 1, 1)
-    TextLabel.Font = Enum.Font.GothamBold
-    TextLabel.TextSize = 14
-    TextLabel.TextStrokeTransparency = 0
-
+    local Bbg = Instance.new("BillboardGui", game:GetService("CoreGui"))
+    local Lbl = Instance.new("TextLabel", Bbg)
+    Bbg.Name = "AchiESP_" .. Player.Name
+    Bbg.AlwaysOnTop = true
+    Bbg.Size = UDim2.new(0, 200, 0, 50)
+    Bbg.ExtentsOffset = Vector3.new(0, 3, 0)
+    Bbg.Enabled = false
+    Lbl.BackgroundTransparency = 1
+    Lbl.Size = UDim2.new(1, 0, 1, 0)
+    Lbl.TextColor3 = Color3.new(1, 1, 1)
+    Lbl.Font = Enum.Font.GothamBold
+    Lbl.TextSize = 14
+    Lbl.TextStrokeTransparency = 0
     RunService.RenderStepped:Connect(function()
         if ESPEnabled and Player.Character and Player.Character:FindFirstChild("Head") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            Billboard.Enabled = true
-            local dist = (Player.Character.Head.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-            TextLabel.Text = string.format("%s\n[%d Studs]", Player.Name, math.floor(dist))
+            Bbg.Adornee = Player.Character.Head
+            Bbg.Enabled = true
+            local Dist = math.floor((Player.Character.Head.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude)
+            Lbl.Text = Player.Name .. " [" .. Dist .. " studs]"
         else
-            Billboard.Enabled = false
+            Bbg.Enabled = false
         end
     end)
 end
+for _, p in pairs(Players:GetPlayers()) do if p ~= LocalPlayer then CreateESP(p) end end
+Players.PlayerAdded:Connect(function(p) CreateESP(p) end)
 
--- สแกนผู้เล่นใหม่เพื่อใส่ ESP
-Players.PlayerAdded:Connect(function(p)
-    p.CharacterAdded:Connect(function() task.wait(1); CreateESP(p) end)
-end)
-
-for _, p in pairs(Players:GetPlayers()) do
-    if p ~= LocalPlayer and p.Character then CreateESP(p) end
-end
-
---// [SECTION 1] AIMBOT Q
+--// [SECTION 1] AIMBOT Q (ห้ามแก้โค้ด)
 local Settings = { BindKey = "Q" }
+local isClicking = false
+
 local function getClosestPlayer()
     local closestPlayer = nil
     local shortestDistance = math.huge
@@ -171,24 +205,72 @@ local function getClosestPlayer()
     return closestPlayer
 end
 
+local function aimAt(target)
+    if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+        local targetPosition = target.Character.HumanoidRootPart.Position
+        Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPosition)
+        if not isClicking then
+            isClicking = true
+            if mouse1click then mouse1click() end
+            isClicking = false
+        end
+    end
+end
+
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if AimbotEnabled and input.KeyCode == Enum.KeyCode[Settings.BindKey:upper()] and not gameProcessed then
-        local target = getClosestPlayer()
-        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.HumanoidRootPart.Position)
-        end
+        local closestPlayer = getClosestPlayer()
+        aimAt(closestPlayer)
     end
 end)
 
---// [SECTION 2] ANTI-GRAB
-local function reconnect()
-    if not AntiGrabEnabled then return end
-    pcall(function()
-        local char = LocalPlayer.Character
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        hum.Sit = false
+--// [SECTION 2] ANTI-GRAB STRUGGLE (แก้บัคปิดไม่ได้ / ห้ามแก้ส่วนอื่น)
+local CE = RS:WaitForChild("CharacterEvents", 5)
+local StruggleEvent = CE and CE:WaitForChild("Struggle", 5)
+local BeingHeld = LocalPlayer:WaitForChild("IsHeld", 5)
+
+if BeingHeld then
+    BeingHeld.Changed:Connect(function(C)
+        if AntiGrabEnabled and C == true then
+            local char = LocalPlayer.Character
+            if BeingHeld.Value == true and StruggleEvent then
+                local Event;
+                Event = RunService.RenderStepped:Connect(function()
+                    if AntiGrabEnabled and BeingHeld.Value == true then
+                        if char and char:FindFirstChild("HumanoidRootPart") then
+                            char["HumanoidRootPart"].AssemblyLinearVelocity = Vector3.new()
+                        end
+                        StruggleEvent:FireServer(LocalPlayer)
+                    else
+                        Event:Disconnect()
+                    end
+                end)
+            end
+        end
     end)
 end
+
+local function reconnect()
+    if not AntiGrabEnabled then return end
+    local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local Humanoid = Character:FindFirstChildWhichIsA("Humanoid") or Character:WaitForChild("Humanoid")
+    local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+    
+    local firePart = HumanoidRootPart:WaitForChild("FirePlayerPart", 2)
+    if firePart then firePart:Remove() end
+
+    Humanoid.Changed:Connect(function(C)
+        if AntiGrabEnabled and C == "Sit" and Humanoid.Sit == true then
+            if Humanoid.SeatPart ~= nil and tostring(Humanoid.SeatPart.Parent) == "CreatureBlobman" then
+            elseif Humanoid.SeatPart == nil then
+                Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+                Humanoid.Sit = false
+            end
+        end
+    end)
+end
+
+LocalPlayer.CharacterAdded:Connect(reconnect)
 
 --// [SECTION 3] TOGGLES
 local function UpdateToggle(btn, state, text)
@@ -208,37 +290,72 @@ end)
 
 AntiGrabToggle.MouseButton1Click:Connect(function()
     AntiGrabEnabled = not AntiGrabEnabled
-    UpdateToggle(AntiGrabToggle, AntiGrabEnabled, "Anti-Grab")
+    if AntiGrabEnabled then reconnect() end
+    UpdateToggle(AntiGrabToggle, AntiGrabEnabled, "Anti-Grab/Struggle")
 end)
 
 ESPToggle.MouseButton1Click:Connect(function()
     ESPEnabled = not ESPEnabled
-    UpdateToggle(ESPToggle, ESPEnabled, "ESP")
+    UpdateToggle(ESPToggle, ESPEnabled, "ESP Vision")
+end)
+
+KillAutoToggle.MouseButton1Click:Connect(function()
+    KillAutoEnabled = not KillAutoEnabled
+    UpdateToggle(KillAutoToggle, KillAutoEnabled, "Kill Target")
+end)
+
+ReachToggle.MouseButton1Click:Connect(function()
+    ReachEnabled = not ReachEnabled
+    UpdateToggle(ReachToggle, ReachEnabled, "Fling Reach")
 end)
 
 --// FLING LOGIC
 workspace.ChildAdded:Connect(function(m)
     if FlingEnabled and m.Name == "GrabParts" then
-        task.wait(0.1)
-        local gp = m:FindFirstChild("GrabPart")
+        local gp = m:WaitForChild("GrabPart", 2)
         if gp and gp:FindFirstChild("WeldConstraint") then
             local p1 = gp.WeldConstraint.Part1
             if p1 then
                 local bv = Instance.new("BodyVelocity", p1)
-                bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                bv.Velocity = Camera.CFrame.LookVector * tonumber(StrengthInput.Text)
-                Debris:AddItem(bv, 1)
+                m:GetPropertyChangedSignal("Parent"):Connect(function()
+                    if not m.Parent then
+                        if UserInputService:GetLastInputType() == Enum.UserInputType.MouseButton2 then
+                            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                            bv.Velocity = Camera.CFrame.LookVector * tonumber(StrengthInput.Text)
+                            Debris:AddItem(bv, 1)
+                        else
+                            bv:Destroy()
+                        end
+                    end
+                end)
             end
         end
     end
 end)
 
 UserInputService.InputBegan:Connect(function(i, gp)
-    if not gp and i.KeyCode == MenuKey then ToggleMenu() end
+    if not gp and i.KeyCode == MenuKey then 
+        ToggleMenu() 
+    end
 end)
 
-StarterGui:SetCore("SendNotification", {
-    Title = "ACHI-ARES V5.5",
-    Text = "โหลดฟังก์ชัน ESP เรียบร้อยแล้ว!\nกด K เพื่อเปิดเมนู",
-    Duration = 5
-})
+--// คำอธิบายเดิม (ห้ามแก้ตามสั่ง)
+task.spawn(function()
+    local function Notify(title, text)
+        StarterGui:SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Duration = 5
+        })
+    end
+
+    Notify("ยินดีต้อนรับ!", "ACHI-ARES V5.5 BY อชิ โหลดแล้ว!")
+    task.wait(1)
+    Notify("Kill Target", "พิมพ์ชื่อคนที่จะวาร์ปไปฆ่าในช่อง Target Name! 💀")
+    task.wait(1)
+    Notify("Fling Reach", "ขยายระยะจับให้มหาศาล สะบัดได้ทุกอย่าง! 😈")
+    task.wait(1)
+    Notify("วิธีใช้ AIMBOT", "เปิด ON แล้วกดปุ่ม [ Q ] เพื่อล็อคเป้าหมาย")
+    task.wait(1)
+    Notify("ANTI-GRAB", "เมื่อโดนจับ ตัวจะหลุดเองทันที (หลุดบัคปิดไม่ได้แล้ว)")
+end)
