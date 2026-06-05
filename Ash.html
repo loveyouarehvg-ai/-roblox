@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;500;700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            font-family: 'Kanit', sans-serif;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* กล่องพาแนลหลัก */
+        .container {
+            width: 340px;
+            min-height: 480px;
+            background: linear-gradient(145deg, #0f0f0f, #1a1a1a);
+            border: 2px solid #ff4444;
+            border-radius: 25px;
+            padding: 25px;
+            box-shadow: 0 0 50px rgba(255, 68, 68, 0.2);
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* หัวข้อชื่อพาแนล */
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ff4444;
+            text-shadow: 0 0 15px rgba(255, 68, 68, 0.6);
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
+        /* หน้า Login */
+        #login-page { margin-top: 40px; }
+        
+        .input-box {
+            width: 85%;
+            padding: 14px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: #fff;
+            text-align: center;
+            outline: none;
+            margin-bottom: 20px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .input-box:focus { border-color: #ff4444; box-shadow: 0 0 10px rgba(255, 68, 68, 0.3); }
+
+        .btn-main {
+            width: 100%;
+            padding: 14px;
+            background: #ff4444;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-main:hover { background: #d32f2f; transform: translateY(-2px); }
+
+        /* หน้าเมนูฟังก์ชัน */
+        #menu-page { display: none; margin-top: 20px; }
+
+        .status-bar {
+            font-size: 12px;
+            color: #00ff88;
+            margin-bottom: 15px;
+            background: rgba(0, 255, 136, 0.1);
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        /* ระบบเลือกตัวเกม */
+        .game-selector {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .select-btn {
+            background: #111;
+            border: 1px solid #ff4444;
+            padding: 12px;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .options-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 10px;
+            margin-top: 5px;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .option-item {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #222;
+            transition: 0.2s;
+        }
+
+        .option-item:hover { background: #ff4444; color: white; }
+        .option-item:last-child { border-bottom: none; }
+
+        /* รายการเมนู */
+        .menu-list { text-align: left; }
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 8px 0;
+            padding: 12px 15px;
+            border-radius: 12px;
+            border-left: 4px solid #ff4444;
+        }
+        .menu-item span { font-weight: 300; font-size: 14px; }
+
+        /* สวิตช์ */
+        .switch { position: relative; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #333; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 14px; width: 14px;
+            left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #ff4444; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* ปุ่มเริ่มต้นพาแนล */
+        .start-btn {
+            background: #00ff88;
+            color: #000;
+            margin-top: 15px;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+        .start-btn:hover { background: #00cc6a; }
+
+        /* เครดิต */
+        .footer-credit { margin-top: 15px; font-size: 11px; color: #555; }
+        .footer-credit b { color: #ff4444; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div>
+            <h1 class="header-title">ROKA🔥 V1</h1>
+            
+            <div id="login-page">
+                <input type="text" id="keyInput" class="input-box" placeholder="กรอกรหัสผ่าน (KEY)">
+                <button class="btn-main" onclick="checkKey()">เข้าสู่ระบบ</button>
+                <p id="error-msg" style="color: #ff4444; font-size: 13px; margin-top: 15px; display: none;">รหัสผ่านไม่ถูกต้อง!</p>
+            </div>
+
+            <div id="menu-page">
+                <div class="status-bar">● SYSTEM READY</div>
+
+                <div class="game-selector">
+                    <div class="select-btn" onclick="toggleGameMenu()">
+                        <span id="selected-game">-- เลือกตัวเกม --</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="options-menu" id="game-options">
+                        <div class="option-item" onclick="setGame('FREE FIRE')">FREE FIRE</div>
+                        <div class="option-item" onclick="setGame('FREE FIRE MAX')">FREE FIRE MAX</div>
+                    </div>
+                </div>
+
+                <div class="menu-list">
+                    <div class="menu-item"><span>บายพาส</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+                    <div class="menu-item"><span>ดูดหัว</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+                    <div class="menu-item"><span>กันดำ</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+                    <div class="menu-item"><span>กันแบน</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+                </div>
+                
+                <button class="btn-main start-btn" onclick="startPanel()">เริ่มต้นพาแนล 🚀</button>
+            </div>
+        </div>
+
+        <div class="footer-credit">
+            CREATED BY <b>king_rooster002</b>
+        </div>
+    </div>
+
+    <script>
+        let currentGame = "";
+
+        // ตรวจสอบคีย์เข้าสู่ระบบ (รหัส: ROKA)
+        function checkKey() {
+            const key = document.getElementById('keyInput').value;
+            if (key === "ROKA") {
+                document.getElementById('login-page').style.display = "none";
+                document.getElementById('menu-page').style.display = "block";
+            } else {
+                const error = document.getElementById('error-msg');
+                error.style.display = "block";
+                setTimeout(() => { error.style.display = "none"; }, 2000);
+            }
+        }
+
+        // เปิด/ปิด เมนูเลือกเกม
+        function toggleGameMenu() {
+            const menu = document.getElementById('game-options');
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        }
+
+        // เลือกตัวเกม
+        function setGame(gameName) {
+            currentGame = gameName;
+            document.getElementById('selected-game').innerText = gameName;
+            document.getElementById('selected-game').style.color = "#00ff88";
+            document.getElementById('game-options').style.display = "none";
+        }
+
+        // เริ่มต้นพาแนล
+        function startPanel() {
+            if (currentGame === "") {
+                alert("⚠️ กรุณาเลือกตัวเกมก่อนเริ่มต้นพาแนล!");
+                return;
+            }
+            
+            // แสดงข้อความแจ้งเตือนพร้อมชื่อเกมที่เลือก
+            alert("รันพาแนลทั้งหมดแล้ว และ ไฟล์ได้เจาะเข้าตัวเกมที่เลือกแล้ว โปรดเข้าเกม " + currentGame + "\n🔰คำแนะนำ รีเกมก่อนเล่น🔰");
+        }
+
+        // ปิดเมนูเลือกเกมเมื่อคลิกพื้นที่อื่น
+        document.addEventListener('click', function(event) {
+            const selector = document.querySelector('.game-selector');
+            const menu = document.getElementById('game-options');
+            if (!selector.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+    </script>
+
+</body>
+  </html>
+                      
